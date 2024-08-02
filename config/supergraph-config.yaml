@@ -1,0 +1,10 @@
+federation_version: "=2.0.0"
+subgraphs:
+  identities:
+    routing_url: http://kong:8000/identities/graphql
+    schema:
+      file: ./service_identities.graphql
+  profiles:
+    routing_url: http://kong:8000/profiles/graphql
+    schema:
+      file: ./service_profiles.graphql

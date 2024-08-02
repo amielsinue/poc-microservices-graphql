@@ -1,0 +1,16 @@
+cors:
+  allow_any_origin: true  
+supergraph:
+  schema: ./supergraph.graphql
+  listen: 0.0.0.0:4000  
+  services:
+    - name: service_1
+      url: http://kong:8000/graphql
+    - name: service_2
+      url: http://kong:8000/graphql
+
+federation:
+  enabled: true
+
+service:
+  name: "supergraph"

@@ -1,0 +1,20 @@
+extend type User @key(fields: "id") {
+  id: Int! @external
+  profile: Profile
+}
+
+type Profile {
+  id: Int!
+  userId: Int!
+  bio: String
+  location: String
+}
+
+type Query {
+  profile(user_id: Int!): Profile
+  profiles: [Profile!]!
+}
+
+type Mutation {
+  createProfile(userId: Int!, bio: String, location: String): Profile!
+}

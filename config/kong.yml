@@ -1,0 +1,23 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: identities
+    url: http://identities_service:80
+    routes:
+      - name: identities_route
+        paths:
+          - /identities
+  - name: profiles
+    url: http://profiles_service:80
+    routes:
+      - name: profiles_route
+        paths:
+          - /profiles
+
+
+# plugins:
+  # - name: key-auth
+  #   service: service_1    
+  # - name: key-auth
+  #   service: service_2
