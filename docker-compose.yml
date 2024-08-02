@@ -1,0 +1,121 @@
+services:
+
+  identities_db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: identities_db
+    volumes:
+     - identitiesdb:/var/lib/postgresql/data
+    networks:
+      - pocnet
+  profiles_db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: profiles_db
+    volumes:
+     - profilesdb:/var/lib/postgresql/data
+    networks:
+      - pocnet
+
+  kong:
+    image: kong:latest
+    depends_on:
+      - identities_service
+      - profiles_service
+    links:
+     - identities_service
+     - profiles_service
+    ports:
+      - "8000:8000" 
+      - "8001:8001"      
+      - "8002:8002"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/kong/declarative/kong.yml"
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    volumes:
+      - ./config/kong.yml:/kong/declarative/kong.yml
+    networks:
+      - pocnet
+
+  identities_service:
+    build: 
+     context: ./services/identities
+     dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./services/identities/src:/app/
+    command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
+    depends_on:
+      - identities_db
+    links:
+     - identities_db
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@identities_db/identities_db
+    networks:
+      - pocnet
+  profiles_service:
+    build: 
+     context: ./services/profiles
+     dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    volumes:
+      - ./services/profiles/src:/app/
+    command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
+    depends_on:
+      - profiles_db
+    links:
+     - profiles_db
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@profiles_db/profiles_db
+    networks:
+      - pocnet
+
+  
+  apollo-router:
+    image: ghcr.io/apollographql/router:v1.52.0
+    depends_on:
+      - kong
+    links:
+      - kong
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    volumes:
+      - ./config/apollo-router.yml:/etc/router.yaml
+      - ./config/supergraph.graphql:/etc/supergraph.graphql
+    command: ["--supergraph", "/etc/supergraph.graphql"]
+    networks:
+      - pocnet
+
+  ui:
+    image: node:18-slim
+    ports:
+      - "80:3000"
+      - "3000:3000"
+    working_dir: /usr/src/app
+    volumes:
+      - ./webapp:/usr/src/app    
+    command: "yarn start"
+    restart: "no"
+    networks:
+      - pocnet
+
+networks:
+  pocnet:
+    driver: bridge
+volumes:
+  identitiesdb:
+    driver: 'local'
+  profilesdb:
+    driver: 'local'
