@@ -1,12 +1,23 @@
+= Requirements:
 
+- Docker
 
-Install Rover
+= Run:
+
 ```bash
-curl -sSL https://rover.apollo.dev/nix/latest | sh
+make build
+make up
 ```
 
-Run
+Available commands
 ```bash
-rover supergraph compose --config ./config/supergraph-config.yaml > ./config/upergraph.graphql
+help                           This help
+prepare                        Prepare environment
+node                           Run Node 18
+down                           Stop all containers
+up                             start all containers
+build                          build images
+ps                             List all containers
+logs                           log for one or all services
+bash                           Login to bash container
 ```
-
